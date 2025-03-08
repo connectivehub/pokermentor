@@ -1,4 +1,4 @@
-import { Card, Rank, Suit, GameState, Player, HandEvaluation, GameStage, ActionType, Advice, AdviceType } from '../types';
+import { Card, Rank, Suit, GameState, Player, HandEvaluation, GameStage, ActionType, Advice, AdviceType, HandRank, HandRankNames } from '../types';
 import { evaluateHand, rankToValue } from './gameUtils';
 
 // Preflop hand strength calculator based on starting hands
@@ -242,30 +242,30 @@ const getHandStrengthAdvice = (
   // Very strong hands (sets, full houses, etc.)
   if (strengthPercentile >= 90) {
     if (stage === GameStage.RIVER) {
-      message = `You have a very strong ${rank} (${strengthPercentile.toFixed(1)}% strength). Consider a value bet to maximize your winnings.`;
+      message = `You have a very strong ${HandRankNames[rank]} (${strengthPercentile.toFixed(1)}% strength). Consider a value bet to maximize your winnings.`;
       suggestedAction = ActionType.RAISE;
       importance = 9;
     } else {
-      message = `You have a very strong ${rank} (${strengthPercentile.toFixed(1)}% strength). Consider building the pot, but be aware that draw-heavy boards can change.`;
+      message = `You have a very strong ${HandRankNames[rank]} (${strengthPercentile.toFixed(1)}% strength). Consider building the pot, but be aware that draw-heavy boards can change.`;
       suggestedAction = ActionType.RAISE;
       importance = 8;
     }
   }
   // Strong hands
   else if (strengthPercentile >= 70) {
-    message = `You have a strong ${rank} (${strengthPercentile.toFixed(1)}% strength). This likely beats most hands, but be cautious of possible draws.`;
+    message = `You have a strong ${HandRankNames[rank]} (${strengthPercentile.toFixed(1)}% strength). This likely beats most hands, but be cautious of possible draws.`;
     suggestedAction = gameState.currentBet > 0 ? ActionType.CALL : ActionType.BET;
     importance = 7;
   }
   // Medium strength hands
   else if (strengthPercentile >= 40) {
-    message = `You have a medium-strength ${rank} (${strengthPercentile.toFixed(1)}% strength). Consider your position and opponents' actions carefully.`;
+    message = `You have a medium-strength ${HandRankNames[rank]} (${strengthPercentile.toFixed(1)}% strength). Consider your position and opponents' actions carefully.`;
     suggestedAction = gameState.currentBet > 0 ? ActionType.CALL : ActionType.CHECK;
     importance = 6;
   }
   // Weak hands
   else {
-    message = `You have a weak ${rank} (${strengthPercentile.toFixed(1)}% strength). Unless you have a good draw, consider folding to significant pressure.`;
+    message = `You have a weak ${HandRankNames[rank]} (${strengthPercentile.toFixed(1)}% strength). Unless you have a good draw, consider folding to significant pressure.`;
     suggestedAction = gameState.currentBet > player.betAmount ? ActionType.FOLD : ActionType.CHECK;
     importance = 8;
   }
@@ -487,7 +487,7 @@ const getPotOddsAdvice = (gameState: GameState, player: Player): Advice => {
       equityExplanation = 'With a gutshot straight draw, you have about 20% equity.';
     } else {
       equity = handEvaluation.strengthPercentile / 100 * 0.5;
-      equityExplanation = `With your ${handEvaluation.rank}, your equity is roughly ${(equity * 100).toFixed(0)}%.`;
+      equityExplanation = `With your ${HandRankNames[handEvaluation.rank]}, your equity is roughly ${(equity * 100).toFixed(0)}%.`;
     }
   } else if (gameState.stage === GameStage.TURN) {
     // On the turn, fewer cards to come
@@ -502,12 +502,12 @@ const getPotOddsAdvice = (gameState: GameState, player: Player): Advice => {
       equityExplanation = 'With a gutshot straight draw, you have about 10% equity on the turn.';
     } else {
       equity = handEvaluation.strengthPercentile / 100 * 0.6;
-      equityExplanation = `With your ${handEvaluation.rank}, your equity is roughly ${(equity * 100).toFixed(0)}%.`;
+      equityExplanation = `With your ${HandRankNames[handEvaluation.rank]}, your equity is roughly ${(equity * 100).toFixed(0)}%.`;
     }
   } else if (gameState.stage === GameStage.RIVER) {
     // On the river, no more cards to come, equity is based solely on current hand
     equity = handEvaluation.strengthPercentile / 100 * 0.8;
-    equityExplanation = `With your ${handEvaluation.rank} on the river, your equity is roughly ${(equity * 100).toFixed(0)}%.`;
+    equityExplanation = `With your ${HandRankNames[handEvaluation.rank]} on the river, your equity is roughly ${(equity * 100).toFixed(0)}%.`;
   }
   
   // Compare pot odds to equity and advise

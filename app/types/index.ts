@@ -30,16 +30,30 @@ export interface Card {
 
 // Hand-related types
 export enum HandRank {
-  HIGH_CARD = 'High Card',
-  PAIR = 'Pair',
-  TWO_PAIR = 'Two Pair',
-  THREE_OF_A_KIND = 'Three of a Kind',
-  STRAIGHT = 'Straight',
-  FLUSH = 'Flush',
-  FULL_HOUSE = 'Full House',
-  FOUR_OF_A_KIND = 'Four of a Kind',
-  STRAIGHT_FLUSH = 'Straight Flush',
-  ROYAL_FLUSH = 'Royal Flush',
+  HIGH_CARD = 0,
+  PAIR = 1,
+  TWO_PAIR = 2,
+  THREE_OF_A_KIND = 3,
+  STRAIGHT = 4,
+  FLUSH = 5,
+  FULL_HOUSE = 6,
+  FOUR_OF_A_KIND = 7,
+  STRAIGHT_FLUSH = 8,
+  ROYAL_FLUSH = 9
+}
+
+// Human-readable hand rank names
+export const HandRankNames = {
+  [HandRank.HIGH_CARD]: 'High Card',
+  [HandRank.PAIR]: 'Pair',
+  [HandRank.TWO_PAIR]: 'Two Pair',
+  [HandRank.THREE_OF_A_KIND]: 'Three of a Kind',
+  [HandRank.STRAIGHT]: 'Straight',
+  [HandRank.FLUSH]: 'Flush',
+  [HandRank.FULL_HOUSE]: 'Full House',
+  [HandRank.FOUR_OF_A_KIND]: 'Four of a Kind',
+  [HandRank.STRAIGHT_FLUSH]: 'Straight Flush',
+  [HandRank.ROYAL_FLUSH]: 'Royal Flush'
 }
 
 export interface HandEvaluation {

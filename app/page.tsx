@@ -15,7 +15,7 @@ import {
   Action,
   Advice,
   HandEvaluation,
-} from "./types";
+} from "./types/index";
 import {
   createDeck,
   dealCards,
