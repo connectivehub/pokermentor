@@ -50,11 +50,11 @@ class MemoryCache {
   
   invalidateUserData(userId: string): void {
     // Delete all cache entries related to this user
-    for (const key of this.cache.keys()) {
+    Array.from(this.cache.keys()).forEach(key => {
       if (key.includes(userId)) {
         this.cache.delete(key);
       }
-    }
+    });
   }
 }
 

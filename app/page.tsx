@@ -11,11 +11,11 @@ import {
   PlayerType,
   PlayerStyle,
   ActionType,
-  Card,
   Action,
   Advice,
   HandEvaluation,
 } from "./types/index";
+import { Card } from "./types/index";
 import {
   createDeck,
   dealCards,
