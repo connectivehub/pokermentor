@@ -30,6 +30,30 @@ export default function PokerTable({
   // Get the human player (always at position 0)
   const humanPlayer = players.find((player) => player.type === "human");
 
+  // Determine available actions for the player
+  const playerActions = {
+    canFold: isPlayerTurn && humanPlayer && !humanPlayer.isFolded,
+    canCheck:
+      isPlayerTurn &&
+      humanPlayer &&
+      !humanPlayer.isFolded &&
+      humanPlayer.betAmount >= currentBet,
+    canCall:
+      isPlayerTurn &&
+      humanPlayer &&
+      !humanPlayer.isFolded &&
+      currentBet > humanPlayer.betAmount,
+    canBet:
+      isPlayerTurn && humanPlayer && !humanPlayer.isFolded && currentBet === 0,
+    canRaise:
+      isPlayerTurn && humanPlayer && !humanPlayer.isFolded && currentBet > 0,
+  };
+
+  // Handle bet slider change
+  const onBetChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setBetAmount(parseInt(e.target.value));
+  };
+
   // Position players around the table
   const getPlayerPosition = (seatPosition: number, totalPlayers: number) => {
     // Calculate position on a circle (0 is bottom center, moving clockwise)
@@ -62,15 +86,16 @@ export default function PokerTable({
             {Array(5)
               .fill(null)
               .map((_, index) => {
+                // Get the card if available in the community cards array
                 const card =
                   index < gameState.communityCards.length
                     ? gameState.communityCards[index]
-                    : null;
+                    : undefined;
 
                 return (
                   <Card
                     key={`community-card-${index}`}
-                    card={card || { suit: null, rank: null, faceUp: false }}
+                    card={card}
                     isDealing={false}
                   />
                 );
@@ -83,7 +108,7 @@ export default function PokerTable({
               Pot: ${gameState.pot}
             </div>
             <div className="flex justify-center">
-              <Chip amount={gameState.pot} size="md" />
+              <Chip value={gameState.pot} size="md" />
             </div>
           </div>
         </div>
@@ -119,7 +144,7 @@ export default function PokerTable({
         <div className="absolute bottom-20 left-1/2 transform -translate-x-1/2 flex flex-col items-center z-40">
           {/* Game controls (fold, check, etc.) */}
           <div className="flex space-x-2 mb-4">
-            {/* Controls buttons */}
+            {/* Fold button */}
             <button
               className="casino-btn px-4 py-2 text-sm"
               onClick={() => onAction(ActionType.FOLD)}
@@ -128,7 +153,41 @@ export default function PokerTable({
               Fold <span className="keyboard-shortcut">F</span>
             </button>
 
-            {/* Other buttons... */}
+            {/* Check button */}
+            <button
+              className="casino-btn px-4 py-2 text-sm"
+              onClick={() => onAction(ActionType.CHECK)}
+              disabled={!playerActions.canCheck}
+            >
+              Check <span className="keyboard-shortcut">C</span>
+            </button>
+
+            {/* Call button */}
+            <button
+              className="casino-btn px-4 py-2 text-sm"
+              onClick={() => onAction(ActionType.CALL)}
+              disabled={!playerActions.canCall}
+            >
+              Call ${currentBet} <span className="keyboard-shortcut">A</span>
+            </button>
+
+            {/* Bet button */}
+            <button
+              className="casino-btn px-4 py-2 text-sm"
+              onClick={() => onAction(ActionType.BET, betAmount)}
+              disabled={!playerActions.canBet}
+            >
+              Bet <span className="keyboard-shortcut">B</span>
+            </button>
+
+            {/* Raise button */}
+            <button
+              className="casino-btn px-4 py-2 text-sm"
+              onClick={() => onAction(ActionType.RAISE, betAmount)}
+              disabled={!playerActions.canRaise}
+            >
+              Raise to ${betAmount} <span className="keyboard-shortcut">R</span>
+            </button>
           </div>
 
           {/* Bet slider if applicable */}

@@ -911,17 +911,50 @@ export default function Home() {
 
         {/* Find the controls container and add proper positioning and z-index */}
         <div className="absolute bottom-20 left-1/2 transform -translate-x-1/2 flex flex-col items-center z-40">
-          {/* Action buttons */}
-          <button
-            className={`casino-btn px-6 py-3 ${
-              !canFold ? "opacity-50 cursor-not-allowed" : ""
-            }`}
-            onClick={() => canFold && handlePlayerAction(ActionType.FOLD)}
-            disabled={!canFold}
-          >
-            Fold (F)
-          </button>
-          {/* Other buttons... */}
+          {/* Action buttons - only shown when it's the player's turn */}
+          {isPlayerTurn && (
+            <div className="flex gap-2">
+              <button
+                className="casino-btn px-6 py-3"
+                onClick={() => handlePlayerAction(ActionType.FOLD)}
+                disabled={!isPlayerTurn}
+              >
+                Fold (F)
+              </button>
+
+              <button
+                className="casino-btn px-6 py-3"
+                onClick={() => handlePlayerAction(ActionType.CHECK)}
+                disabled={!isPlayerTurn || gameState.currentBet > 0}
+              >
+                Check (C)
+              </button>
+
+              <button
+                className="casino-btn px-6 py-3"
+                onClick={() => handlePlayerAction(ActionType.CALL)}
+                disabled={!isPlayerTurn || gameState.currentBet === 0}
+              >
+                Call (A)
+              </button>
+
+              <button
+                className="casino-btn px-6 py-3"
+                onClick={() => handlePlayerAction(ActionType.BET, betAmount)}
+                disabled={!isPlayerTurn || gameState.currentBet > 0}
+              >
+                Bet (B)
+              </button>
+
+              <button
+                className="casino-btn px-6 py-3"
+                onClick={() => handlePlayerAction(ActionType.RAISE, betAmount)}
+                disabled={!isPlayerTurn || gameState.currentBet === 0}
+              >
+                Raise (R)
+              </button>
+            </div>
+          )}
         </div>
       </div>
     </div>
