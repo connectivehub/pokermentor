@@ -4,6 +4,7 @@ import React, { useState, useEffect, useCallback } from "react";
 import { motion } from "framer-motion";
 import PokerTable from "./components/PokerTable";
 import Advisor from "./components/Advisor";
+import CardComponent from "./components/Card";
 import {
   GameState,
   GameStage,
@@ -14,8 +15,8 @@ import {
   Action,
   Advice,
   HandEvaluation,
+  Card,
 } from "./types/index";
-import { Card } from "./types/card";
 import {
   createDeck,
   dealCards,
@@ -40,11 +41,11 @@ const PLAYER_NAMES = [
   "Raj",
 ];
 const PLAYER_STYLES: PlayerStyle[] = [
-  "tight-aggressive",
-  "loose-aggressive",
-  "tight-passive",
-  "loose-passive",
-  "balanced",
+  PlayerStyle.TIGHT_AGGRESSIVE,
+  PlayerStyle.LOOSE_AGGRESSIVE,
+  PlayerStyle.TIGHT_PASSIVE,
+  PlayerStyle.LOOSE_PASSIVE,
+  PlayerStyle.BALANCED,
 ];
 
 export default function Home() {
@@ -543,7 +544,7 @@ export default function Home() {
     playerIndex: number
   ): { action: ActionType; amount?: number } => {
     const player = state.players[playerIndex];
-    const playerStyle = player.style || "balanced";
+    const playerStyle = player.style || PlayerStyle.BALANCED;
     const handEvaluation = evaluateHand(player.cards, state.communityCards);
     const handStrength = handEvaluation.strengthPercentile;
 
@@ -566,19 +567,19 @@ export default function Home() {
     let adjustedHandStrength = handStrength;
 
     switch (playerStyle) {
-      case "tight-aggressive":
+      case PlayerStyle.TIGHT_AGGRESSIVE:
         // More selective with hands, but aggressive when playing
         adjustedHandStrength = handStrength * 0.8;
         break;
-      case "loose-aggressive":
+      case PlayerStyle.LOOSE_AGGRESSIVE:
         // Plays more hands, and aggressive
         adjustedHandStrength = handStrength * 1.2;
         break;
-      case "tight-passive":
+      case PlayerStyle.TIGHT_PASSIVE:
         // Selective with hands, and passive
         adjustedHandStrength = handStrength * 0.7;
         break;
-      case "loose-passive":
+      case PlayerStyle.LOOSE_PASSIVE:
         // Plays many hands, but passive
         adjustedHandStrength = handStrength * 1.1;
         break;
@@ -879,21 +880,21 @@ export default function Home() {
                     </div>
                     <div className="flex justify-center space-x-2 mb-2">
                       {winner.cards.map((card, j) => (
-                        <Card
+                        <CardComponent
                           key={`winner-${i}-card-${j}`}
                           card={{ ...card, faceUp: true }}
                           size="sm"
                         />
                       ))}
                     </div>
-                    <div className="text-casino-gold text-sm">
-                      {winner.handEvaluation?.description}
-                    </div>
                   </div>
                 ))}
               </div>
 
-              <button className="casino-btn px-6 py-3" onClick={dealNextHand}>
+              <button
+                className="casino-btn text-xl px-8 py-4"
+                onClick={dealNextHand}
+              >
                 Deal Next Hand
               </button>
             </motion.div>
