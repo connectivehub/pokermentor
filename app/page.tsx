@@ -86,7 +86,7 @@ export default function Home() {
     const numOpponents = 5;
     const players: Player[] = [];
 
-    // Human player
+    // Human player - always at position 0 (bottom)
     players.push({
       id: userData.userId,
       name: "You",
@@ -97,13 +97,13 @@ export default function Home() {
       isActive: true,
       isFolded: false,
       isAllIn: false,
-      seatPosition: 0, // Bottom center
+      seatPosition: 0,
+      avatar: AVATAR_IMAGES[0],
     });
 
     // AI opponents with evenly spaced positions
-    // For 6 players total, we want positions at approx: 0 (human), 2, 3, 4, 6, 8 clockwise
-    // This gives good spacing with human at bottom, and top center seat filled
-    const positionMap = [2, 3, 4, 6, 8]; // These positions will be scaled in the component
+    // For 6 players total, we want positions at 2,4,5,7,9 clockwise from bottom
+    const positionMap = [2, 4, 5, 7, 9]; // These positions will be scaled in the component
 
     for (let i = 0; i < numOpponents; i++) {
       players.push(
@@ -111,7 +111,7 @@ export default function Home() {
           PLAYER_NAMES[i % PLAYER_NAMES.length],
           5000 + Math.floor(Math.random() * 10000),
           PLAYER_STYLES[i % PLAYER_STYLES.length],
-          positionMap[i] // Use the mapped position instead of sequential positions
+          positionMap[i]
         )
       );
     }
@@ -400,74 +400,54 @@ export default function Home() {
       player.betAmount = 0;
     });
 
-    // Find the first active player after the dealer
+    // Find the first non-folded, non-all-in player after the dealer
     let firstToAct = (state.dealerIndex + 1) % state.players.length;
+    let loopCount = 0;
 
-    // Ensure we find an active player who hasn't folded
     while (
-      (state.players[firstToAct].isFolded ||
-        state.players[firstToAct].isAllIn) &&
-      firstToAct !== state.dealerIndex
+      loopCount < state.players.length &&
+      (state.players[firstToAct].isFolded || state.players[firstToAct].isAllIn)
     ) {
       firstToAct = (firstToAct + 1) % state.players.length;
+      loopCount++;
     }
 
-    state.currentPlayerIndex = firstToAct;
-    state.currentBet = 0;
+    // If we found a valid player to act
+    if (loopCount < state.players.length) {
+      state.currentPlayerIndex = firstToAct;
+      state.currentBet = 0;
 
-    // Check if everyone but one player has folded
-    const activePlayers = state.players.filter((p) => !p.isFolded);
-    if (activePlayers.length === 1) {
-      // Handle showdown with only one player left
+      // Move to next stage
+      switch (state.stage) {
+        case GameStage.PREFLOP:
+          state.stage = GameStage.FLOP;
+          dealCommunityCards(state, 3);
+          break;
+
+        case GameStage.FLOP:
+          state.stage = GameStage.TURN;
+          dealCommunityCards(state, 1);
+          break;
+
+        case GameStage.TURN:
+          state.stage = GameStage.RIVER;
+          dealCommunityCards(state, 1);
+          break;
+
+        case GameStage.RIVER:
+          state.stage = GameStage.SHOWDOWN;
+          handleShowdown(state);
+          break;
+      }
+    } else {
+      // All players are either folded or all-in, go to showdown
       state.stage = GameStage.SHOWDOWN;
+      // Deal any remaining community cards
+      const remainingCards = 5 - state.communityCards.length;
+      if (remainingCards > 0) {
+        dealCommunityCards(state, remainingCards);
+      }
       handleShowdown(state);
-      return;
-    }
-
-    // Check if all remaining players are all-in
-    const allPlayersAllIn = activePlayers.every((p) => p.isAllIn || p.isFolded);
-
-    // Move to next stage
-    switch (state.stage) {
-      case GameStage.PREFLOP:
-        state.stage = GameStage.FLOP;
-        dealCommunityCards(state, 3); // Deal flop
-
-        // If all players are all-in, deal all remaining cards and go to showdown
-        if (allPlayersAllIn) {
-          dealCommunityCards(state, 2); // Deal turn and river
-          state.stage = GameStage.SHOWDOWN;
-          handleShowdown(state);
-        }
-        break;
-
-      case GameStage.FLOP:
-        state.stage = GameStage.TURN;
-        dealCommunityCards(state, 1); // Deal turn
-
-        // If all players are all-in, deal river and go to showdown
-        if (allPlayersAllIn) {
-          dealCommunityCards(state, 1); // Deal river
-          state.stage = GameStage.SHOWDOWN;
-          handleShowdown(state);
-        }
-        break;
-
-      case GameStage.TURN:
-        state.stage = GameStage.RIVER;
-        dealCommunityCards(state, 1); // Deal river
-
-        // If all players are all-in, go to showdown
-        if (allPlayersAllIn) {
-          state.stage = GameStage.SHOWDOWN;
-          handleShowdown(state);
-        }
-        break;
-
-      case GameStage.RIVER:
-        state.stage = GameStage.SHOWDOWN;
-        handleShowdown(state);
-        break;
     }
 
     // Generate new advice for human player if it's not a showdown

@@ -9,42 +9,55 @@ export const calculatePreflopHandStrength = (holeCards: Card[]): number => {
   const rank1Value = rankToValue(card1.rank);
   const rank2Value = rankToValue(card2.rank);
   
-  // Pair
-  if (card1.rank === card2.rank) {
-    // Scale from 0-100, where AA is 100 and 22 is 50
-    return 50 + ((rank1Value - 2) / 12) * 50;
-  }
-  
-  // Same suit (suited cards)
-  const isSuited = card1.suit === card2.suit;
-  
   // Sort by rank value (high to low)
   const highRankValue = Math.max(rank1Value, rank2Value);
   const lowRankValue = Math.min(rank1Value, rank2Value);
   
-  // Calculate the gap between ranks
-  const gap = highRankValue - lowRankValue;
+  // Same suit (suited cards)
+  const isSuited = card1.suit === card2.suit;
   
-  // Base strength based on high card
-  let strength = (highRankValue - 2) / 12 * 30;
+  // Base strength calculation
+  let strength = 0;
   
-  // Adjust for connected cards (straights are more valuable with smaller gaps)
-  if (gap <= 4) {
-    strength += (4 - gap) * 3;
+  // Pairs
+  if (rank1Value === rank2Value) {
+    // Scale pairs exponentially - higher pairs are much stronger
+    // AA = 100, KK = 95, QQ = 90, JJ = 85, etc.
+    strength = 50 + Math.pow((rank1Value - 2) / 12, 0.8) * 50;
+    return strength;
   }
   
-  // Suited cards are more valuable
+  // Non-pairs
+  // Start with high card value (weighted more heavily for Aces)
+  strength = highRankValue === 14 ? 45 : (highRankValue - 2) / 12 * 30;
+  
+  // Add value for second card (weighted more for Broadway cards)
+  strength += lowRankValue >= 10 ? 
+    (lowRankValue - 9) * 5 : // Broadway cards
+    (lowRankValue - 2) / 12 * 10; // Non-Broadway
+    
+  // Suited bonus (more valuable for high cards)
   if (isSuited) {
-    strength += 10;
+    strength += highRankValue >= 10 ? 12 : 8;
   }
   
-  // Adjust for Broadway cards (10, J, Q, K, A)
+  // Connectedness bonus (inversely proportional to gap)
+  const gap = highRankValue - lowRankValue;
+  if (gap <= 4) {
+    strength += (4 - gap) * 4;
+    // Additional bonus for high connectors
+    if (lowRankValue >= 10) {
+      strength += (4 - gap) * 2;
+    }
+  }
+  
+  // Broadway bonus (both cards 10 or higher)
   if (lowRankValue >= 10) {
     strength += 10;
   }
   
-  // Scale to max 49 (below pocket pairs)
-  return Math.min(49, strength);
+  // Scale the final result to be below pairs
+  return Math.min(75, strength);
 };
 
 // Starting hand recommendations chart
