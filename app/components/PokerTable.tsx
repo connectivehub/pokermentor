@@ -54,20 +54,23 @@ export default function PokerTable({
     setBetAmount(parseInt(e.target.value));
   };
 
-  // Position players around the table
+  // Position players around the table based on a more balanced elliptical layout
   const getPlayerPosition = (seatPosition: number, totalPlayers: number) => {
-    // Calculate position on a circle (0 is bottom center, moving clockwise)
+    // Calculate position on an ellipse (0 is bottom center, moving clockwise)
     const angleIncrement = (2 * Math.PI) / totalPlayers;
     const angle = seatPosition * angleIncrement - Math.PI / 2; // Start from bottom
 
-    // Table dimensions
-    const tableWidth = 800;
-    const tableHeight = 400;
+    // Table dimensions - use width/height ratio of 2:1 for elliptical layout
+    const tableWidth = 900;
+    const tableHeight = 450;
 
-    // Calculate position
-    const radius = Math.min(tableWidth, tableHeight) * 0.45;
-    const x = Math.cos(angle) * radius;
-    const y = Math.sin(angle) * radius;
+    // Calculate position on ellipse
+    const xRadius = tableWidth * 0.42;
+    const yRadius = tableHeight * 0.42;
+
+    // Position on ellipse
+    const x = Math.cos(angle) * xRadius;
+    const y = Math.sin(angle) * yRadius;
 
     return {
       x: x,
@@ -79,14 +82,16 @@ export default function PokerTable({
     <div className="relative w-full max-w-5xl mx-auto">
       {/* Poker table */}
       <div className="poker-table w-full aspect-[2/1] relative flex items-center justify-center">
-        {/* Center area with community cards and pot */}
-        <div className="absolute inset-0 flex flex-col items-center justify-center">
-          {/* Community cards */}
-          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 flex gap-2 z-10">
+        {/* Center area with community cards */}
+        <div className="absolute inset-0 flex items-center justify-center">
+          {/* Community cards - positioned in the center, but slightly above center */}
+          <div
+            className="absolute flex gap-2"
+            style={{ top: "40%", transform: "translateY(-50%)" }}
+          >
             {Array(5)
               .fill(null)
               .map((_, index) => {
-                // Get the card if available in the community cards array
                 const card =
                   index < gameState.communityCards.length
                     ? gameState.communityCards[index]
@@ -102,8 +107,8 @@ export default function PokerTable({
               })}
           </div>
 
-          {/* Pot display */}
-          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 mt-20 text-center">
+          {/* Pot display - positioned below the community cards */}
+          <div className="absolute text-center" style={{ top: "55%" }}>
             <div className="text-white font-casino text-xl mb-1">
               Pot: ${gameState.pot}
             </div>
@@ -126,6 +131,7 @@ export default function PokerTable({
               style={{
                 left: `calc(50% + ${position.x}px)`,
                 top: `calc(50% + ${position.y}px)`,
+                zIndex: 5, // Keep players below cards but above table
               }}
             >
               <PlayerSeat
@@ -139,50 +145,47 @@ export default function PokerTable({
             </div>
           );
         })}
+      </div>
 
-        {/* Player actions container - moved up to avoid advisor overlap */}
-        <div className="absolute bottom-20 left-1/2 transform -translate-x-1/2 flex flex-col items-center z-40">
+      {/* Player actions container - moved completely outside the table for clarity */}
+      {isPlayerTurn && (
+        <div className="fixed bottom-4 left-1/2 transform -translate-x-1/2 flex flex-col items-center z-50 mt-4">
           {/* Game controls (fold, check, etc.) */}
-          <div className="flex space-x-2 mb-4">
-            {/* Fold button */}
+          <div className="flex flex-wrap justify-center gap-2 mb-3 bg-black/40 p-3 rounded-lg">
             <button
-              className="casino-btn px-4 py-2 text-sm"
+              className="casino-btn px-5 py-3 text-base"
               onClick={() => onAction(ActionType.FOLD)}
               disabled={!playerActions.canFold}
             >
               Fold <span className="keyboard-shortcut">F</span>
             </button>
 
-            {/* Check button */}
             <button
-              className="casino-btn px-4 py-2 text-sm"
+              className="casino-btn px-5 py-3 text-base"
               onClick={() => onAction(ActionType.CHECK)}
               disabled={!playerActions.canCheck}
             >
               Check <span className="keyboard-shortcut">C</span>
             </button>
 
-            {/* Call button */}
             <button
-              className="casino-btn px-4 py-2 text-sm"
+              className="casino-btn px-5 py-3 text-base"
               onClick={() => onAction(ActionType.CALL)}
               disabled={!playerActions.canCall}
             >
               Call ${currentBet} <span className="keyboard-shortcut">A</span>
             </button>
 
-            {/* Bet button */}
             <button
-              className="casino-btn px-4 py-2 text-sm"
+              className="casino-btn px-5 py-3 text-base"
               onClick={() => onAction(ActionType.BET, betAmount)}
               disabled={!playerActions.canBet}
             >
               Bet <span className="keyboard-shortcut">B</span>
             </button>
 
-            {/* Raise button */}
             <button
-              className="casino-btn px-4 py-2 text-sm"
+              className="casino-btn px-5 py-3 text-base"
               onClick={() => onAction(ActionType.RAISE, betAmount)}
               disabled={!playerActions.canRaise}
             >
@@ -192,7 +195,7 @@ export default function PokerTable({
 
           {/* Bet slider if applicable */}
           {(playerActions.canBet || playerActions.canRaise) && (
-            <div className="w-64 flex items-center space-x-2">
+            <div className="w-80 flex items-center space-x-2 bg-black/40 p-3 rounded-lg">
               <input
                 type="range"
                 min={minBet}
@@ -201,13 +204,13 @@ export default function PokerTable({
                 onChange={onBetChange}
                 className="w-full"
               />
-              <span className="text-white bg-casino-black/50 px-2 py-1 rounded text-sm">
+              <span className="text-white bg-casino-black/70 px-2 py-1 rounded text-base min-w-12 text-center">
                 ${betAmount}
               </span>
             </div>
           )}
         </div>
-      </div>
+      )}
     </div>
   );
 }
