@@ -100,14 +100,18 @@ export default function Home() {
       seatPosition: 0, // Bottom center
     });
 
-    // AI opponents
+    // AI opponents with evenly spaced positions
+    // For 6 players total, we want positions at approx: 0 (human), 2, 3, 4, 6, 8 clockwise
+    // This gives good spacing with human at bottom, and top center seat filled
+    const positionMap = [2, 3, 4, 6, 8]; // These positions will be scaled in the component
+
     for (let i = 0; i < numOpponents; i++) {
       players.push(
         createAIPlayer(
           PLAYER_NAMES[i % PLAYER_NAMES.length],
           5000 + Math.floor(Math.random() * 10000),
           PLAYER_STYLES[i % PLAYER_STYLES.length],
-          i
+          positionMap[i] // Use the mapped position instead of sequential positions
         )
       );
     }
@@ -390,10 +394,19 @@ export default function Home() {
       }
     });
 
+    // Move bets to pot
+    state.players.forEach((player) => {
+      state.pot += player.betAmount;
+      player.betAmount = 0;
+    });
+
     // Find the first active player after the dealer
     let firstToAct = (state.dealerIndex + 1) % state.players.length;
+
+    // Ensure we find an active player who hasn't folded
     while (
-      state.players[firstToAct].isFolded &&
+      (state.players[firstToAct].isFolded ||
+        state.players[firstToAct].isAllIn) &&
       firstToAct !== state.dealerIndex
     ) {
       firstToAct = (firstToAct + 1) % state.players.length;
@@ -401,23 +414,54 @@ export default function Home() {
 
     state.currentPlayerIndex = firstToAct;
     state.currentBet = 0;
-    state.players.forEach((player) => (player.betAmount = 0));
+
+    // Check if everyone but one player has folded
+    const activePlayers = state.players.filter((p) => !p.isFolded);
+    if (activePlayers.length === 1) {
+      // Handle showdown with only one player left
+      state.stage = GameStage.SHOWDOWN;
+      handleShowdown(state);
+      return;
+    }
+
+    // Check if all remaining players are all-in
+    const allPlayersAllIn = activePlayers.every((p) => p.isAllIn || p.isFolded);
 
     // Move to next stage
     switch (state.stage) {
       case GameStage.PREFLOP:
         state.stage = GameStage.FLOP;
         dealCommunityCards(state, 3); // Deal flop
+
+        // If all players are all-in, deal all remaining cards and go to showdown
+        if (allPlayersAllIn) {
+          dealCommunityCards(state, 2); // Deal turn and river
+          state.stage = GameStage.SHOWDOWN;
+          handleShowdown(state);
+        }
         break;
 
       case GameStage.FLOP:
         state.stage = GameStage.TURN;
         dealCommunityCards(state, 1); // Deal turn
+
+        // If all players are all-in, deal river and go to showdown
+        if (allPlayersAllIn) {
+          dealCommunityCards(state, 1); // Deal river
+          state.stage = GameStage.SHOWDOWN;
+          handleShowdown(state);
+        }
         break;
 
       case GameStage.TURN:
         state.stage = GameStage.RIVER;
         dealCommunityCards(state, 1); // Deal river
+
+        // If all players are all-in, go to showdown
+        if (allPlayersAllIn) {
+          state.stage = GameStage.SHOWDOWN;
+          handleShowdown(state);
+        }
         break;
 
       case GameStage.RIVER:

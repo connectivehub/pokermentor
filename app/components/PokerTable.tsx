@@ -56,9 +56,13 @@ export default function PokerTable({
 
   // Position players around the table based on a more balanced elliptical layout
   const getPlayerPosition = (seatPosition: number, totalPlayers: number) => {
-    // Calculate position on an ellipse (0 is bottom center, moving clockwise)
-    const angleIncrement = (2 * Math.PI) / totalPlayers;
-    const angle = seatPosition * angleIncrement - Math.PI / 2; // Start from bottom
+    // Scale seatPosition to get positions on a 0-10 scale for better distribution
+    // seatPosition 0 is the human player at bottom center
+
+    // Adjust the angle calculation so that seatPosition 0 is at the bottom (270 degrees or 3π/2)
+    // For an elliptical table, we want to distribute players evenly around the ellipse
+    const angleIncrement = (2 * Math.PI) / 10; // Use 10 as the divisor for a more flexible layout
+    const angle = seatPosition * angleIncrement + (3 * Math.PI) / 2; // Start from bottom (3π/2)
 
     // Table dimensions - use width/height ratio of 2:1 for elliptical layout
     const tableWidth = 900;
