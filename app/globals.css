@@ -1,0 +1,81 @@
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700;800;900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --foreground-rgb: 245, 245, 245;
+  --background-start-rgb: 12, 12, 12;
+  --background-end-rgb: 18, 18, 18;
+}
+
+body {
+  color: rgb(var(--foreground-rgb));
+  background: linear-gradient(
+      to bottom,
+      transparent,
+      rgb(var(--background-end-rgb))
+    )
+    rgb(var(--background-start-rgb));
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+@layer components {
+  .casino-btn {
+    @apply bg-casino-gold text-casino-black font-casino font-bold py-2 px-4 rounded-md shadow-neon 
+    hover:bg-yellow-500 hover:shadow-neon active:transform active:scale-95 transition-all duration-200
+    focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:ring-opacity-50;
+  }
+
+  .casino-btn-red {
+    @apply bg-casino-red text-white font-casino font-bold py-2 px-4 rounded-md shadow-neon-red
+    hover:bg-red-600 hover:shadow-neon-red active:transform active:scale-95 transition-all duration-200
+    focus:outline-none focus:ring-2 focus:ring-red-400 focus:ring-opacity-50;
+  }
+
+  .casino-btn-blue {
+    @apply bg-casino-blue text-white font-casino font-bold py-2 px-4 rounded-md shadow-neon-blue
+    hover:bg-blue-600 hover:shadow-neon-blue active:transform active:scale-95 transition-all duration-200
+    focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-opacity-50;
+  }
+
+  .casino-btn-green {
+    @apply bg-casino-green text-white font-casino font-bold py-2 px-4 rounded-md shadow-neon-green
+    hover:bg-green-600 hover:shadow-neon-green active:transform active:scale-95 transition-all duration-200
+    focus:outline-none focus:ring-2 focus:ring-green-400 focus:ring-opacity-50;
+  }
+
+  .poker-table {
+    @apply bg-felt-green rounded-[12rem] border-8 border-casino-black shadow-2xl;
+  }
+
+  .poker-card {
+    @apply rounded-md bg-white text-casino-black border-2 border-gray-300 shadow-md transform transition-all duration-300;
+  }
+
+  .poker-chip {
+    @apply rounded-full border-4 shadow-md flex items-center justify-center font-bold;
+  }
+
+  .chip-stack {
+    @apply flex flex-col items-center justify-center -space-y-2;
+  }
+  
+  .hand-strength-indicator {
+    @apply px-3 py-1 rounded-full text-xs font-bold;
+  }
+  
+  .keyboard-shortcut {
+    @apply inline-flex items-center justify-center min-w-[24px] h-6 px-1 
+    bg-white/10 text-white text-xs font-digital rounded border border-white/30
+    shadow-sm ml-2;
+  }
+  
+  .advisor-suggestion {
+    @apply bg-casino-blue/20 border border-casino-blue p-3 rounded-md 
+    shadow-md text-white mb-3;
+  }
+} 
