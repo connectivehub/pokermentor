@@ -202,7 +202,7 @@ export async function getSessionHands(sessionId: string): Promise<HandPerformanc
   }
   
   try {
-    const handIds = await kv.smembers<string>(`session:${sessionId}:hands`);
+    const handIds = await kv.smembers<string[]>(`session:${sessionId}:hands`);
     if (!handIds || handIds.length === 0) return [];
     
     const hands: HandPerformance[] = [];
