@@ -5,7 +5,6 @@ import Chip from "./Chip";
 import PlayerSeat from "./PlayerSeat";
 import { GameState, Player, ActionType } from "../types";
 import { KEY_MAPPINGS } from "../hooks/useKeyboardShortcuts";
-import styled from "styled-components";
 
 interface PokerTableProps {
   gameState: GameState;
@@ -16,17 +15,6 @@ interface PokerTableProps {
   minBet: number;
   maxBet: number;
 }
-
-// Find the community cards container and add z-index
-const CommunityCardsContainer = styled.div`
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  display: flex;
-  gap: 8px;
-  z-index: 10; // Add this to ensure cards appear above players
-`;
 
 export default function PokerTable({
   gameState,
@@ -70,30 +58,34 @@ export default function PokerTable({
         {/* Center area with community cards and pot */}
         <div className="absolute inset-0 flex flex-col items-center justify-center">
           {/* Community cards */}
-          <CommunityCardsContainer>
+          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 flex gap-2 z-10">
             {Array(5)
               .fill(null)
-              .map((_, i) => (
-                <Card
-                  key={`community-${i}`}
-                  card={communityCards[i]}
-                  isDealing={communityCards[i] !== undefined}
-                  dealDelay={i * 0.1}
-                />
-              ))}
-          </CommunityCardsContainer>
+              .map((_, index) => {
+                const card =
+                  index < gameState.communityCards.length
+                    ? gameState.communityCards[index]
+                    : null;
+
+                return (
+                  <Card
+                    key={`community-card-${index}`}
+                    card={card || { suit: null, rank: null, faceUp: false }}
+                    isDealing={false}
+                  />
+                );
+              })}
+          </div>
 
           {/* Pot display */}
-          {pot > 0 && (
-            <div className="flex flex-col items-center">
-              <div className="chip-stack">
-                <Chip value={pot} size="lg" isAnimated />
-              </div>
-              <div className="mt-2 text-white font-casino text-lg">
-                Pot: ${pot}
-              </div>
+          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 mt-20 text-center">
+            <div className="text-white font-casino text-xl mb-1">
+              Pot: ${gameState.pot}
             </div>
-          )}
+            <div className="flex justify-center">
+              <Chip amount={gameState.pot} size="md" />
+            </div>
+          </div>
         </div>
 
         {/* Players around the table */}
