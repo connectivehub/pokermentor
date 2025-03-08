@@ -30,6 +30,7 @@ import { getPreflopAdvice, getPostflopAdvice } from "./lib/advisorUtils";
 import useKeyboardShortcuts from "./hooks/useKeyboardShortcuts";
 import useSoundEffects from "./hooks/useSoundEffects";
 import useGamePersistence from "./hooks/useGamePersistence";
+import { v4 as uuidv4 } from "uuid";
 
 const PLAYER_NAMES = [
   "Tony",
@@ -46,6 +47,16 @@ const PLAYER_STYLES: PlayerStyle[] = [
   PlayerStyle.TIGHT_PASSIVE,
   PlayerStyle.LOOSE_PASSIVE,
   PlayerStyle.BALANCED,
+];
+
+// Define avatar URLs
+const AVATAR_IMAGES = [
+  "/images/avatars/avatar-1.png", // You
+  "/images/avatars/avatar-2.png", // Jackson
+  "/images/avatars/avatar-3.png", // Tony
+  "/images/avatars/avatar-4.png", // Olivia
+  "/images/avatars/avatar-5.png", // Sophie
+  "/images/avatars/avatar-6.png", // Marcus
 ];
 
 export default function Home() {
@@ -91,19 +102,14 @@ export default function Home() {
 
     // AI opponents
     for (let i = 0; i < numOpponents; i++) {
-      players.push({
-        id: `ai-${i}`,
-        name: PLAYER_NAMES[i % PLAYER_NAMES.length],
-        balance: 5000 + Math.floor(Math.random() * 10000), // Random balance between $5000-$15000
-        cards: [],
-        type: PlayerType.AI,
-        style: PLAYER_STYLES[i % PLAYER_STYLES.length],
-        betAmount: 0,
-        isActive: true,
-        isFolded: false,
-        isAllIn: false,
-        seatPosition: i + 1, // Positioned around the table
-      });
+      players.push(
+        createAIPlayer(
+          PLAYER_NAMES[i % PLAYER_NAMES.length],
+          5000 + Math.floor(Math.random() * 10000),
+          PLAYER_STYLES[i % PLAYER_STYLES.length],
+          i
+        )
+      );
     }
 
     // Initial dealer position (random)
@@ -850,13 +856,15 @@ export default function Home() {
         />
 
         {/* Advisor */}
-        <Advisor
-          advice={advice}
-          isEnabled={advisorEnabled}
-          toggleEnabled={toggleAdvisor}
-          holeCards={gameState.players[0].cards}
-          stage={gameState.stage}
-        />
+        <div className="fixed bottom-4 right-4 z-30">
+          <Advisor
+            advice={advice}
+            isEnabled={advisorEnabled}
+            toggleEnabled={toggleAdvisor}
+            holeCards={gameState.players[0].cards}
+            stage={gameState.stage}
+          />
+        </div>
 
         {/* Showdown modal */}
         {showdown && (
@@ -900,7 +908,45 @@ export default function Home() {
             </motion.div>
           </div>
         )}
+
+        {/* Find the controls container and add proper positioning and z-index */}
+        <div className="absolute bottom-20 left-1/2 transform -translate-x-1/2 flex flex-col items-center z-40">
+          {/* Action buttons */}
+          <button
+            className={`casino-btn px-6 py-3 ${
+              !canFold ? "opacity-50 cursor-not-allowed" : ""
+            }`}
+            onClick={() => canFold && handlePlayerAction(ActionType.FOLD)}
+            disabled={!canFold}
+          >
+            Fold (F)
+          </button>
+          {/* Other buttons... */}
+        </div>
       </div>
     </div>
   );
 }
+
+// Update AI player creation to include avatars
+const createAIPlayer = (
+  name: string,
+  balance: number,
+  style: PlayerStyle,
+  position: number
+): Player => {
+  return {
+    id: uuidv4(),
+    name,
+    balance,
+    cards: [],
+    type: PlayerType.AI,
+    style,
+    betAmount: 0,
+    isActive: false,
+    isFolded: false,
+    isAllIn: false,
+    avatar: AVATAR_IMAGES[position], // Add avatar image
+    seatPosition: position,
+  };
+};

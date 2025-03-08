@@ -88,7 +88,10 @@ export default function PlayerSeat({
         {/* Player info */}
         <div className="flex items-center mb-2">
           {/* Avatar */}
-          <div className="w-10 h-10 rounded-full overflow-hidden mr-2 bg-gray-700 border border-gray-600">
+          <div
+            className="w-12 h-12 rounded-full overflow-hidden border-2 border-casino-gold shadow-neon mb-1"
+            style={{ margin: "0 auto" }}
+          >
             {avatar ? (
               <img
                 src={avatar}
@@ -96,8 +99,8 @@ export default function PlayerSeat({
                 className="w-full h-full object-cover"
               />
             ) : (
-              <div className="w-full h-full flex items-center justify-center text-white text-xs">
-                {name.substring(0, 2).toUpperCase()}
+              <div className="w-full h-full bg-casino-blue flex items-center justify-center">
+                <span className="text-white font-bold">{name[0]}</span>
               </div>
             )}
           </div>

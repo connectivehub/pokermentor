@@ -5,6 +5,7 @@ import Chip from "./Chip";
 import PlayerSeat from "./PlayerSeat";
 import { GameState, Player, ActionType } from "../types";
 import { KEY_MAPPINGS } from "../hooks/useKeyboardShortcuts";
+import styled from "styled-components";
 
 interface PokerTableProps {
   gameState: GameState;
@@ -15,6 +16,17 @@ interface PokerTableProps {
   minBet: number;
   maxBet: number;
 }
+
+// Find the community cards container and add z-index
+const CommunityCardsContainer = styled.div`
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  gap: 8px;
+  z-index: 10; // Add this to ensure cards appear above players
+`;
 
 export default function PokerTable({
   gameState,
@@ -58,7 +70,7 @@ export default function PokerTable({
         {/* Center area with community cards and pot */}
         <div className="absolute inset-0 flex flex-col items-center justify-center">
           {/* Community cards */}
-          <div className="flex space-x-2 mb-6">
+          <CommunityCardsContainer>
             {Array(5)
               .fill(null)
               .map((_, i) => (
@@ -69,7 +81,7 @@ export default function PokerTable({
                   dealDelay={i * 0.1}
                 />
               ))}
-          </div>
+          </CommunityCardsContainer>
 
           {/* Pot display */}
           {pot > 0 && (
@@ -111,102 +123,39 @@ export default function PokerTable({
           );
         })}
 
-        {/* Action buttons */}
-        {isPlayerTurn && humanPlayer && (
-          <motion.div
-            className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex flex-col items-center"
-            initial={{ y: 50, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            transition={{ type: "spring", stiffness: 300, damping: 25 }}
-          >
-            <div className="flex space-x-4 mb-4">
-              {/* Fold button */}
-              <button
-                onClick={() => onAction(ActionType.FOLD)}
-                className="casino-btn-red"
-              >
-                Fold <span className="keyboard-shortcut">F</span>
-              </button>
+        {/* Player actions container - moved up to avoid advisor overlap */}
+        <div className="absolute bottom-20 left-1/2 transform -translate-x-1/2 flex flex-col items-center z-40">
+          {/* Game controls (fold, check, etc.) */}
+          <div className="flex space-x-2 mb-4">
+            {/* Controls buttons */}
+            <button
+              className="casino-btn px-4 py-2 text-sm"
+              onClick={() => onAction(ActionType.FOLD)}
+              disabled={!playerActions.canFold}
+            >
+              Fold <span className="keyboard-shortcut">F</span>
+            </button>
 
-              {/* Check/Call button */}
-              {humanPlayer.betAmount === currentBet ? (
-                <button
-                  onClick={() => onAction(ActionType.CHECK)}
-                  className="casino-btn-blue"
-                  disabled={humanPlayer.betAmount !== currentBet}
-                >
-                  Check <span className="keyboard-shortcut">C</span>
-                </button>
-              ) : (
-                <button
-                  onClick={() => onAction(ActionType.CALL)}
-                  className="casino-btn-blue"
-                  disabled={humanPlayer.balance === 0}
-                >
-                  Call ${currentBet - humanPlayer.betAmount}{" "}
-                  <span className="keyboard-shortcut">C</span>
-                </button>
-              )}
+            {/* Other buttons... */}
+          </div>
 
-              {/* Bet/Raise button */}
-              {currentBet === 0 ? (
-                <button
-                  onClick={() => onAction(ActionType.BET, betAmount)}
-                  className="casino-btn"
-                  disabled={humanPlayer.balance === 0}
-                >
-                  Bet <span className="keyboard-shortcut">B</span>
-                </button>
-              ) : (
-                <button
-                  onClick={() => onAction(ActionType.RAISE, betAmount)}
-                  className="casino-btn"
-                  disabled={
-                    humanPlayer.balance <
-                    currentBet + minBet - humanPlayer.betAmount
-                  }
-                >
-                  Raise <span className="keyboard-shortcut">R</span>
-                </button>
-              )}
-
-              {/* All-in button */}
-              <button
-                onClick={() => onAction(ActionType.ALL_IN)}
-                className="casino-btn-green"
-                disabled={humanPlayer.balance === 0}
-              >
-                All-In <span className="keyboard-shortcut">A</span>
-              </button>
+          {/* Bet slider if applicable */}
+          {(playerActions.canBet || playerActions.canRaise) && (
+            <div className="w-64 flex items-center space-x-2">
+              <input
+                type="range"
+                min={minBet}
+                max={maxBet}
+                value={betAmount}
+                onChange={onBetChange}
+                className="w-full"
+              />
+              <span className="text-white bg-casino-black/50 px-2 py-1 rounded text-sm">
+                ${betAmount}
+              </span>
             </div>
-
-            {/* Bet amount slider */}
-            {(currentBet === 0 || currentBet > 0) &&
-              humanPlayer.balance > 0 && (
-                <div className="flex items-center space-x-4 w-full max-w-md">
-                  <span className="text-white font-casino">${betAmount}</span>
-                  <input
-                    type="range"
-                    min={
-                      currentBet === 0
-                        ? minBet
-                        : currentBet + minBet - humanPlayer.betAmount
-                    }
-                    max={humanPlayer.balance}
-                    value={betAmount}
-                    onChange={(e) => setBetAmount(parseInt(e.target.value))}
-                    className="w-full"
-                  />
-                  <button
-                    onClick={() => setBetAmount(humanPlayer.balance)}
-                    className="text-white hover:text-casino-gold transition-colors"
-                  >
-                    Max
-                  </button>
-                </div>
-              )}
-          </motion.div>
-        )}
+          )}
+        </div>
       </div>
     </div>
   );

@@ -2,6 +2,7 @@ import React from "react";
 import { motion } from "framer-motion";
 import { Advice, AdviceType, GameStage, Card as CardType } from "../types";
 import Card from "./Card";
+import styled from "styled-components";
 
 interface AdvisorProps {
   advice: Advice[];
@@ -10,6 +11,15 @@ interface AdvisorProps {
   holeCards: CardType[];
   stage: GameStage;
 }
+
+// Add a styled container for the cards to ensure proper display
+const CardContainer = styled.div`
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
+  height: 80px; /* Fixed height to prevent layout shift */
+  overflow: visible; /* Allow card to overflow */
+`;
 
 export default function Advisor({
   advice,
@@ -79,19 +89,23 @@ export default function Advisor({
 
       {/* Current hand information */}
       <div className="mb-4">
-        <h4 className="text-casino-gold text-sm uppercase font-bold mb-2">
-          Your Hand
-        </h4>
-        <div className="flex justify-center space-x-2 mb-2">
-          {holeCards.map((card, index) => (
+        <h3 className="text-casino-gold font-bold text-lg mb-2">YOUR HAND</h3>
+        <CardContainer>
+          {holeCards.map((card, i) => (
             <Card
-              key={`advisor-card-${index}`}
+              key={`hole-card-${i}`}
               card={{ ...card, faceUp: true }}
-              size="sm"
+              size="md"
             />
           ))}
+        </CardContainer>
+        <div className="text-white">
+          {stage !== GameStage.PREFLOP && (
+            <div className="text-sm text-casino-gold mt-2">
+              {getStageDescription(stage)}
+            </div>
+          )}
         </div>
-        <div className="text-white text-sm">{getStageDescription(stage)}</div>
       </div>
 
       {/* Advice sections */}
